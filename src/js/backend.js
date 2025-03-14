@@ -441,7 +441,7 @@ function formatEpochTime(epoch, timezone) {
 }
 
 // Function to recursively process timestamps in the data
-function processTimestamps(data, timezone, keysToConvert = ['utcStartSeconds', 'utcEndSeconds', 'timestamp', 'startTime', 'endTime']) {
+function processTimestamps(data, timezone, keysToConvert = ['dateAdded', 'utcStartSeconds', 'utcEndSeconds', 'timestamp', 'startTime', 'endTime']) {
   if (!data || typeof data !== 'object') return data;
 
   if (Array.isArray(data)) {
