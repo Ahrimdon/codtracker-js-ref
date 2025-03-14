@@ -4,7 +4,7 @@ const bodyParser = require("body-parser");
 const API = require("./src/js/index.js");
 const favicon = require('serve-favicon');
 const app = express();
-const port = process.env.PORT || 3513;
+const port = process.env.PORT || 3512;
 
 // Middleware
 app.use(bodyParser.json({ limit: "10mb" }));
