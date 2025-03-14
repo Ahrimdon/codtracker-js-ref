@@ -309,16 +309,17 @@ async function fetchData(endpoint, requestData) {
   }
 }
 
-// Update the displayResults function to handle time conversion
+// Function to handle time and duration conversion
 function displayResults(data) {
   const resultsElement = document.getElementById("results");
   const downloadContainer = document.getElementById("download-container");
 
   // Apply time conversion if enabled
   const convertTime = document.getElementById('convertTimeOption').checked;
+  const replaceKeys = document.getElementById('replaceKeysOption').checked;
   let displayData = data;
 
-  if (convertTime) {
+  if (convertTime || replaceKeys) {
     const timezone = document.getElementById('timezoneSelect').value;
     displayData = processTimestamps(JSON.parse(JSON.stringify(data)), timezone);
   }
@@ -410,6 +411,22 @@ function triggerActiveTabButton() {
   }
 }
 
+// Function to convert seconds to human readable duration
+function formatDuration(seconds) {
+  if (!seconds || isNaN(seconds)) return seconds;
+  
+  // Convert to number in case it's a string
+  const totalSeconds = parseFloat(seconds);
+  
+  // Calculate days, hours, minutes, seconds
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const remainingSeconds = Math.floor(totalSeconds % 60);
+  
+  return `${days} Days ${hours} Hours ${minutes} Minutes ${remainingSeconds} Seconds`;
+}
+
 // Function to convert epoch time to human-readable format
 function formatEpochTime(epoch, timezone) {
   if (!epoch) return epoch;
@@ -440,20 +457,22 @@ function formatEpochTime(epoch, timezone) {
   return date.toUTCString().replace('GMT', timezone);
 }
 
-// Function to recursively process timestamps in the data
-function processTimestamps(data, timezone, keysToConvert = ['dateAdded', 'utcStartSeconds', 'utcEndSeconds', 'timestamp', 'startTime', 'endTime']) {
+// Function to recursively process timestamps and durations in the data
+function processTimestamps(data, timezone, keysToConvert = ['date', 'dateAdded', 'utcStartSeconds', 'utcEndSeconds', 'timestamp', 'startTime', 'endTime'], durationKeys = ['time', 'timePlayedTotal', 'timePlayed', 'avgLifeTime', 'duration', 'objTime']) {
   if (!data || typeof data !== 'object') return data;
 
   if (Array.isArray(data)) {
-    return data.map(item => processTimestamps(item, timezone, keysToConvert));
+    return data.map(item => processTimestamps(item, timezone, keysToConvert, durationKeys));
   }
 
   const result = {};
   for (const [key, value] of Object.entries(data)) {
     if (keysToConvert.includes(key) && typeof value === 'number') {
       result[key] = formatEpochTime(value, timezone);
+    } else if (durationKeys.includes(key) && typeof value === 'number' && document.getElementById("replaceKeysOption").checked) {
+      result[key] = formatDuration(value);
     } else if (typeof value === 'object' && value !== null) {
-      result[key] = processTimestamps(value, timezone, keysToConvert);
+      result[key] = processTimestamps(value, timezone, keysToConvert, durationKeys);
     } else {
       result[key] = value;
     }
