@@ -20,12 +20,12 @@ h1 {
 }
 
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
 }
 
 label {
   display: block;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
   font-weight: bold;
 }
 
@@ -91,7 +91,7 @@ button:hover {
 
 .tabs {
   display: flex;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   border-bottom: 1px solid #333;
 }
 
@@ -178,6 +178,8 @@ button:hover {
 .checkbox-group {
   display: flex;
   gap: 20px;
+  position: relative;
+  top: 5px;
 }
 
 .checkbox-group input[type="checkbox"] {
@@ -186,14 +188,14 @@ button:hover {
 }
 
 .format-options, .processing-options {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   padding: 10px;
   background-color: #2d2d2d;
   border-radius: 4px;
 }
 
 .time-options {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   padding: 10px;
   background-color: #2d2d2d;
   border-radius: 4px;
