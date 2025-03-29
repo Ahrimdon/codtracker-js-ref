@@ -210,6 +210,19 @@ button:hover {
   animation: octocat-wave 560ms ease-in-out;
 }
 
+.clear-data-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.clear-data-btn:hover {
+  background-color: #d32f2f;
+}
+
 @keyframes octocat-wave {
   0%,
   100% {
