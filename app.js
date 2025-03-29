@@ -71,7 +71,7 @@ const sanitizeJsonOutput = (data) => {
     const jsonString = JSON.stringify(data);
 
     // Define regex pattern that matches HTML entities
-    const regexPattern = /&lt;span class=&quot;.*?&quot;&gt;|&lt;\/span&gt;|&quot;&gt;|mp-stat-items|kills-value|headshots-value|username|game-mode|kdr-value|accuracy-value|defends-value/g;
+    const regexPattern = /&lt;span class=&quot;.*?&quot;&gt;|&lt;\/span&gt;|&quot;&gt;/g;
 
     // Replace unwanted patterns
     const sanitizedString = jsonString.replace(regexPattern, '');
