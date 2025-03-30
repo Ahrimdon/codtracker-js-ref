@@ -235,6 +235,12 @@ function jsonToYAML(json) {
 
 // Common fetch function
 async function fetchData(endpoint, requestData) {
+  console.log(`[CLIENT] Request to ${endpoint} at ${new Date().toISOString()}`);
+  console.log(`[CLIENT] Request data: ${JSON.stringify({
+    ...requestData,
+    ssoToken: requestData.ssoToken ? requestData.ssoToken.substring(0, 5) + '...' : 'none'
+  })}`);
+
   const errorElement = document.getElementById("error");
   const loadingElement = document.getElementById("loading");
   const resultsElement = document.getElementById("results");
@@ -282,6 +288,9 @@ async function fetchData(endpoint, requestData) {
     }
 
     const data = await response.json();
+    console.log(`[CLIENT] Response received at ${new Date().toISOString()}`);
+    console.log(`[CLIENT] Response status: ${response.status}`);
+    console.log(`[CLIENT] Response size: ~${JSON.stringify(data).length / 1024} KB`);
 
     if (!response.ok) {
       throw new Error(data.message || `Error: ${response.status}`);

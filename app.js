@@ -113,13 +113,15 @@ const tokenManager = {
     const currentTime = Date.now();
     
     if (storedToken && (currentTime - storedToken.timestamp < 1800000)) { // 30 minutes expiry
+      console.log(`Attempting to validate token for SSO: ${ssoToken.substring(0, 5)}...`);
       console.log("Using cached token");
       return storedToken.token;
     }
     
     // We need to login and get a new token
     try {
-      console.log("Authenticating with new SSO token");
+      console.log(`Attempting to login with SSO token: ${ssoToken.substring(0, 5)}...`);
+      console.log(`Current active sessions: ${this.activeSessions.size}`);
       const loginResult = await Promise.race([
         API.login(ssoToken),
         timeoutPromise(10000), // 10 second timeout
@@ -131,7 +133,8 @@ const tokenManager = {
         timestamp: currentTime
       });
       
-      console.log("Authentication successful");
+      console.log(`Authentication successful - Token: ${loginResult.substring(0, 5)}...`);
+      console.log(`Token cached at: ${new Date().toISOString()}`);
       return loginResult;
     } catch (error) {
       console.error("Authentication failed:", error);
@@ -157,13 +160,15 @@ const timeoutPromise = (ms) => {
 // Helper function to ensure login
 const ensureLogin = async (ssoToken) => {
   if (!activeSessions.has(ssoToken)) {
-    console.log("Attempting to login with SSO token");
+    console.log(`Attempting to login with SSO token: ${ssoToken.substring(0, 5)}...`);
+    // console.log(`Attempting to login with SSO token: ${ssoToken}`);
     const loginResult = await Promise.race([
       API.login(ssoToken),
       timeoutPromise(10000), // 10 second timeout
     ]);
 
-    console.log("Login successful:", loginResult);
+    console.log(`Login successful: ${JSON.stringify(loginResult)}`);
+    console.log(`Session created at: ${new Date().toISOString()}`);
     activeSessions.set(ssoToken, new Date());
   } else {
     console.log("Using existing session");
@@ -173,6 +178,8 @@ const ensureLogin = async (ssoToken) => {
 // Helper function to handle API errors
 const handleApiError = (error, res) => {
   console.error("API Error:", error);
+  console.error(`Error Stack: ${error.stack}`);
+  console.error(`Error Time: ${new Date().toISOString()}`);
 
   // Try to extract more useful information from the error
   let errorMessage = error.message || "Unknown API error";
@@ -202,12 +209,31 @@ const handleApiError = (error, res) => {
 // API endpoint to fetch stats
 app.post("/api/stats", async (req, res) => {
   console.log("Received request for /api/stats");
-  try {
-    const { username, ssoToken, platform, game, apiCall } = req.body;
+  console.log(`Request IP: ${req.ip || req.connection.remoteAddress}`);
+  console.log(`Request JSON: ${JSON.stringify({
+    username: req.body.username,
+    platform: req.body.platform,
+    game: req.body.game,
+    apiCall: req.body.apiCall,
+    sanitize: req.body.sanitize,
+    replaceKeys: req.body.replaceKeys
+  })}`);
 
+  try {
+    const { username, ssoToken, platform, game, apiCall, sanitize, replaceKeys } = req.body;
+
+     /*
     console.log(
       `Request details - Username: ${username}, Platform: ${platform}, Game: ${game}, API Call: ${apiCall}`
     );
+
+    console.log("=== STATS REQUEST ===");
+    console.log(`Username: ${username || 'Not provided'}`);
+    console.log(`Platform: ${platform}`);
+    console.log(`Game: ${game}`);
+    console.log(`API Call: ${apiCall}`);
+    console.log(`Processing Options - Sanitize: ${sanitize}, Replace Keys: ${replaceKeys}`);
+    console.log("====================="); */
 
     if (!ssoToken) {
       return res.status(400).json({ error: "SSO Token is required" });
@@ -379,6 +405,8 @@ app.post("/api/stats", async (req, res) => {
       }
 
       console.log("Data fetched successfully");
+      console.log(`Response Size: ~${JSON.stringify(data).length / 1024} KB`);
+      console.log(`Response Time: ${new Date().toISOString()}`);
 
       // Safely handle the response data
       if (!data) {
@@ -391,7 +419,7 @@ app.post("/api/stats", async (req, res) => {
         });
       }
 
-      console.log("Returning data to client");
+      // console.log("Returning data to client");
 
       const { sanitize, replaceKeys } = req.body;
 
@@ -419,12 +447,29 @@ app.post("/api/stats", async (req, res) => {
 // API endpoint to fetch recent matches
 app.post("/api/matches", async (req, res) => {
   console.log("Received request for /api/matches");
+  console.log(`Request IP: ${req.ip || req.connection.remoteAddress}`);
+  console.log(`Request JSON: ${JSON.stringify({
+    username: req.body.username,
+    platform: req.body.platform,
+    game: req.body.game,
+    sanitize: req.body.sanitize,
+    replaceKeys: req.body.replaceKeys
+  })}`);
+  
   try {
-    const { username, ssoToken, platform, game } = req.body;
+    const { username, ssoToken, platform, game, sanitize, replaceKeys } = req.body;
 
+    /*
     console.log(
-      `Request details - Username: ${username}, Platform: ${platform}, Game: ${game}`
+       `Request details - Username: ${username}, Platform: ${platform}, Game: ${game}`
     );
+
+    console.log("=== MATCHES REQUEST ===");
+    console.log(`Username: ${username}`);
+    console.log(`Platform: ${platform}`);
+    console.log(`Game: ${game}`);
+    console.log(`Processing Options - Sanitize: ${sanitize}, Replace Keys: ${replaceKeys}`);
+    console.log("========================"); */
 
     if (!username || !ssoToken) {
       return res
@@ -541,13 +586,30 @@ app.post("/api/matches", async (req, res) => {
 // API endpoint to fetch match info
 app.post("/api/matchInfo", async (req, res) => {
   console.log("Received request for /api/matchInfo");
-  try {
-    const { matchId, ssoToken, platform, game } = req.body;
-    const mode = "mp";
+  console.log(`Request IP: ${req.ip || req.connection.remoteAddress}`);
+  console.log(`Request JSON: ${JSON.stringify({
+    matchId: req.body.matchId,
+    platform: req.body.platform,
+    game: req.body.game,
+    sanitize: req.body.sanitize,
+    replaceKeys: req.body.replaceKeys
+  })}`);
 
+  try {
+    const { matchId, ssoToken, platform, game, sanitize, replaceKeys } = req.body;
+    const mode = "mp";
+    
+    /*
     console.log(
       `Request details - Match ID: ${matchId}, Platform: ${platform}, Game: ${game}`
     );
+
+    console.log("=== MATCH INFO REQUEST ===");
+    console.log(`Match ID: ${matchId}`);
+    console.log(`Platform: ${platform}`);
+    console.log(`Game: ${game}`);
+    console.log(`Processing Options - Sanitize: ${sanitize}, Replace Keys: ${replaceKeys}`);
+    console.log("=========================="); */
 
     if (!matchId || !ssoToken) {
       return res
@@ -650,12 +712,29 @@ app.post("/api/matchInfo", async (req, res) => {
 // API endpoint for user-related API calls
 app.post("/api/user", async (req, res) => {
   console.log("Received request for /api/user");
-  try {
-    const { username, ssoToken, platform, userCall } = req.body;
+  console.log(`Request IP: ${req.ip || req.connection.remoteAddress}`);
+  console.log(`Request JSON: ${JSON.stringify({
+    username: req.body.username,
+    platform: req.body.platform,
+    userCall: req.body.userCall,
+    sanitize: req.body.sanitize,
+    replaceKeys: req.body.replaceKeys
+  })}`);
 
+  try {
+    const { username, ssoToken, platform, userCall, sanitize, replaceKeys } = req.body;
+    
+    /*
     console.log(
       `Request details - Username: ${username}, Platform: ${platform}, User Call: ${userCall}`
     );
+
+    console.log("=== USER DATA REQUEST ===");
+    console.log(`Username: ${username || 'Not provided'}`);
+    console.log(`Platform: ${platform}`);
+    console.log(`User Call: ${userCall}`);
+    console.log(`Processing Options - Sanitize: ${sanitize}, Replace Keys: ${replaceKeys}`);
+    console.log("========================="); */
 
     if (!ssoToken) {
       return res.status(400).json({ error: "SSO Token is required" });
@@ -759,12 +838,27 @@ app.post("/api/user", async (req, res) => {
 // API endpoint for fuzzy search
 app.post("/api/search", async (req, res) => {
   console.log("Received request for /api/search");
-  try {
-    const { username, ssoToken, platform } = req.body;
+  console.log(`Request IP: ${req.ip || req.connection.remoteAddress}`);
+  console.log(`Request JSON: ${JSON.stringify({
+    username: req.body.username,
+    platform: req.body.platform,
+    sanitize: req.body.sanitize,
+    replaceKeys: req.body.replaceKeys
+})}`);
 
+  try {
+    const { username, ssoToken, platform, sanitize, replaceKeys } = req.body;
+
+    /*
     console.log(
       `Request details - Username to search: ${username}, Platform: ${platform}`
     );
+
+    console.log("=== SEARCH REQUEST ===");
+    console.log(`Search Term: ${username}`);
+    console.log(`Platform: ${platform}`);
+    console.log(`Processing Options - Sanitize: ${sanitize}, Replace Keys: ${replaceKeys}`);
+    console.log("======================"); */
 
     if (!username || !ssoToken) {
       return res
